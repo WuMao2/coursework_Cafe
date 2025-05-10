@@ -18,4 +18,5 @@ This project simulates a basic cafe environment where customers can view the men
 ## 🛠️ Technologies Used
 
 - **Programming Language:** C++20
-- **Version Controll:** GitHub
+- **Version Control:** GitHub
+- **Building:** CMake
