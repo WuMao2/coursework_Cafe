@@ -14,7 +14,7 @@ class CUser {
   public:
     CUser(std::string u, std::string p, bool s = false, bool priv = false);
 
-    virtual ~CUser();
+    virtual ~CUser() = default;
 
     virtual void loginFromFile(std::string u, std::string p);
     void logout();
@@ -23,6 +23,7 @@ class CUser {
     bool getPrivilages() const;
     int getPoints() const;
     void setPoints(int value);
+    void saveChangesIntoFile();
 
     virtual void registerIntoFile(std::string u, std::string p);
 };
