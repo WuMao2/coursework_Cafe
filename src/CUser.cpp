@@ -1,115 +1,152 @@
 #include "CUser.hpp"
+#include "CAdmin.hpp"
 
-CUser::CUser(std::string u, std::string p, bool s, bool priv)
-        : username(u), password(p), isLoggedIn(s), privilages(priv) {}
+#include <iostream>
+#include <fstream>
 
-void CUser::loginFromFile(std::string u, std::string p) {
-  std::ifstream file("users.txt");
-  if (file.is_open()) {
+CUser::CUser(const std::string& u, const std::string& p, bool s)
+    : username(u), password(p), isLoggedIn(s), points(0) {}
+
+void CUser::loginFromFile(const std::string& u, const std::string& p) {
+    std::ifstream file("users.txt");
+    if (!file.is_open()) {
+        std::cerr << "Unable to open users.txt\n";
+        return;
+    }
+
     std::string line;
     while (std::getline(file, line)) {
-      // Find positions of spaces
-      size_t firstSpace = line.find(' ');
-      size_t secondSpace = line.find(' ', firstSpace + 1);
-      size_t thirdSpace = line.find(' ', secondSpace + 1);
+        size_t firstSpace = line.find(' ');
+        size_t secondSpace = line.find(' ', firstSpace + 1);
+        size_t thirdSpace = line.find(' ', secondSpace + 1);
 
-      // Extract username and password
-      std::string fileUsername = line.substr(0, firstSpace);
-      std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-      int filePoints = std::stoi(line.substr(secondSpace + 1, thirdSpace - secondSpace - 1));
+        std::string fileUsername = line.substr(0, firstSpace);
+        std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
+        int filePoints = std::stoi(line.substr(secondSpace + 1, thirdSpace - secondSpace - 1));
 
-      if (fileUsername == u && filePassword == p) {
-      username = u;
-      password = p;
-      isLoggedIn = true;
-      points = filePoints;
-      std::cout << "Login successful!" << std::endl;
-      break;
-      }
+        if (fileUsername == u && filePassword == p) {
+            username = u;
+            password = p;
+            isLoggedIn = true;
+            points = filePoints;
+            std::cout << "Login successful!\n";
+            return;
+        }
     }
-    if (!isLoggedIn) {
-      std::cout << "Login failed!" << std::endl;
+
+    std::cout << "Login failed!\n";
+}
+
+CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
+    std::ifstream file("admins.txt");
+    if (!file.is_open()) {
+        std::cerr << "Unable to open admins.txt\n";
+        return nullptr;
     }
-    file.close();
-  } else {
-    std::cerr << "Unable to open file";
-  }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t firstSpace = line.find(' ');
+        size_t secondSpace = line.find(' ', firstSpace + 1);
+        size_t thirdSpace = line.find(' ', secondSpace + 1);
+
+        std::string fileUsername = line.substr(0, firstSpace);
+        std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
+        int id = std::stoi(line.substr(secondSpace + 1, thirdSpace - secondSpace - 1));
+
+        if (fileUsername == u && filePassword == p) {
+            username = u;
+            password = p;
+            isLoggedIn = true;
+            std::cout << "Admin login successful!\n";
+            return new CAdmin(u, p, true, id);
+        }
+    }
+
+    std::cout << "Admin login failed!\n";
+    return nullptr;
 }
 
-void CUser::logout() {
-  username = "Unknown Customer";
-  password = "";
-  isLoggedIn = false;
-  privilages = false;
-  std::cout << "Logged out successfully!" << std::endl;
-}
+void CUser::registerIntoFile(const std::string& u, const std::string& p) {
+    std::ifstream inFile("users.txt");
+    if (!inFile.is_open()) {
+        std::cerr << "Unable to open users.txt for reading.\n";
+        return;
+    }
 
-std::string CUser::getUsername() const {
-  return username;
-}
+    std::string line;
+    while (std::getline(inFile, line)) {
+        size_t firstSpace = line.find(' ');
+        std::string existingUsername = line.substr(0, firstSpace);
+        if (existingUsername == u) {
+            std::cout << "Username already exists. Please choose a different one.\n";
+            return;
+        }
+    }
+    inFile.close();
 
-bool CUser::getLoggedIn() const {
-  return isLoggedIn;
-}
+    std::ofstream outFile("users.txt", std::ios::app);
+    if (!outFile.is_open()) {
+        std::cerr << "Unable to open users.txt for writing.\n";
+        return;
+    }
 
-bool CUser::getPrivilages() const {
-  return privilages;
-}
-
-int CUser::getPoints() const {
-  return points;
-}
-
-void CUser::setPoints(int value) {
-  points = value;
-}
-
-void CUser::registerIntoFile(std::string u, std::string p) {
-  std::ofstream file("users.txt", std::ios::app);
-  if (file.is_open()) {
-    file << u << " " << p << "" << 0 << std::endl;
-    file.close();
-    std::cout << "User registered successfully!" << std::endl;
-  } else {
-    std :: cerr << "Unable to open file";
-  }
+    outFile << u << " " << p << " " << 0 << '\n';
+    std::cout << "User registered successfully!\n";
 }
 
 void CUser::saveChangesIntoFile() {
-  if (isLoggedIn) {
+    if (!isLoggedIn) return;
+
     std::ifstream inFile("users.txt");
     std::ofstream tempFile("temp.txt");
-        
-    if (inFile.is_open() && tempFile.is_open()) {
-      std::string line;
-      bool found = false;
-            
-      while (std::getline(inFile, line)) {
+
+    if (!inFile.is_open() || !tempFile.is_open()) {
+        std::cerr << "Unable to open files for updating user data.\n";
+        return;
+    }
+
+    std::string line;
+    while (std::getline(inFile, line)) {
         size_t firstSpace = line.find(' ');
         size_t secondSpace = line.find(' ', firstSpace + 1);
-                
+
         std::string fileUsername = line.substr(0, firstSpace);
         std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-                
+
         if (fileUsername == username && filePassword == password) {
-          // Write updated user information
-          tempFile << username << " " << password << " " << points << std::endl;
-          found = true;
+            tempFile << username << " " << password << " " << points << '\n';
         } else {
-          // Copy the line as is
-          tempFile << line << std::endl;
+            tempFile << line << '\n';
         }
-      }
-            
-      inFile.close();
-      tempFile.close();
-      
-      // Remove the original file and rename the temp file
-      std::remove("users.txt");
-      std::rename("temp.txt", "users.txt");
-    } else {
-      std::cerr << "Unable to open files for updating" << std::endl;
     }
-  }
+
+    inFile.close();
+    tempFile.close();
+
+    std::remove("users.txt");
+    std::rename("temp.txt", "users.txt");
 }
 
+void CUser::logout() {
+    username = "Unknown Customer";
+    password.clear();
+    isLoggedIn = false;
+    std::cout << "Logged out successfully.\n";
+}
+
+std::string CUser::getUsername() const {
+    return username;
+}
+
+bool CUser::getLoggedIn() const {
+    return isLoggedIn;
+}
+
+int CUser::getPoints() const {
+    return points;
+}
+
+void CUser::setPoints(int value) {
+    points = value;
+}

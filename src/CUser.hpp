@@ -1,29 +1,41 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <string>
 
+class CAdmin;
+
 class CUser {
-  private:
+    friend class CAdmin;
+
+private:
     std::string username;
     std::string password;
     bool isLoggedIn;
-    bool privilages;
-
     int points;
 
-  public:
-    CUser(std::string u, std::string p, bool s = false, bool priv = false);
-
+public:
+    // Constructors & Destructor
+    CUser(const std::string& u = "Unknown Customer", const std::string& p = "", bool loggedIn = false);
     virtual ~CUser() = default;
 
-    virtual void loginFromFile(std::string u, std::string p);
-    void logout();
-    std::string getUsername() const;
-    bool getLoggedIn() const;
-    bool getPrivilages() const;
-    int getPoints() const;
-    void setPoints(int value);
+    // Login/Register
+    virtual void loginFromFile(const std::string& u, const std::string& p);
+    virtual void registerIntoFile(const std::string& u, const std::string& p);
+    virtual void logout();
+
+    // Admin login (returns dynamically allocated admin)
+    CAdmin* loginAdmin(const std::string& u, const std::string& p);
+
+    // Data persistence
     void saveChangesIntoFile();
 
-    virtual void registerIntoFile(std::string u, std::string p);
+    // Getters
+    std::string getUsername() const;
+    bool getLoggedIn() const;
+    int getPoints() const;
+
+    // Setters
+    void setPoints(int value);
 };
