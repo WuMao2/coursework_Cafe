@@ -12,7 +12,7 @@ This project simulates a basic cafe environment where customers can view the men
 - [ ] 🛒 Order placement and managment
 - [ ] ✏️ Add / Edit / Remove menu items (admin)
 - [ ] 💾 Persistent data storage using files or database
-- [ ] 👤 User authentication (optional/admin mode)
+- [x] 👤 User authentication (optional/admin mode)
 - [ ] 🖥️ Command-line / GUI-based interface (depending on implementation)
 
 ## 🛠️ Technologies Used
