@@ -1,5 +1,6 @@
 #include "CSession.hpp"
 #include <sstream>
+#include <limits>
 
 CSession::~CSession() {
     if (curUser.getLoggedIn()) {
@@ -11,8 +12,9 @@ CSession::~CSession() {
 }
 
 void CSession::awaitForInput() {
-    std::cout << "\nPress any key to continue...";
-    std::cin.ignore();
+    std::cout << "\nPress Enter to continue...";
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
 }
 
@@ -20,6 +22,25 @@ void CSession::initialize() {
     // Load menu and orders from files
     menu.loadFromFile("menu.txt");
     orderList.loadFromFile("orders.txt");
+}
+
+int CSession::strictInput() {
+    std::string input;
+    int choice;
+
+    // Clear previous errors (if any)
+    std::cin.clear();
+
+    std::getline(std::cin, input);
+
+    std::stringstream ss(input);
+    if (ss >> choice && ss.eof()) {
+        return choice;
+    } else {
+        std::cout << "Invalid input. Please enter a number." << std::endl;
+        awaitForInput();
+        return -1;
+    }
 }
 
 bool CSession::loginUser() {
@@ -30,9 +51,9 @@ bool CSession::loginUser() {
     }
     std::string inputUsername, inputPassword;
     std::cout << "Enter username: ";
-    std::cin >> inputUsername;
+    std::getline(std::cin, inputUsername);
     std::cout << "Enter password: ";
-    std::cin >> inputPassword;
+    std::getline(std::cin, inputPassword);
     if (curUser.loginFromFile(inputUsername, inputPassword)) {
         std::cout << "Login successful. Welcome, " << curUser.getUsername() << "!\n";
         awaitForInput();
@@ -48,9 +69,9 @@ bool CSession::registerUser() {
     if (!curUser.getLoggedIn()) {
         std::string username, password;
         std::cout << "Enter username: ";
-        std::cin >> username;
+        std::getline(std::cin, username);
         std::cout << "Enter password: ";
-        std::cin >> password;
+        std::getline(std::cin, password);
         if (curUser.registerIntoFile(username, password)) {
             std::cout << "Registration successful. You can now log in.\n";
             awaitForInput();
@@ -89,9 +110,9 @@ bool CSession::loginAdmin() {
 
     std::string inputUsername, inputPassword;
     std::cout << "Enter admin username: ";
-    std::cin >> inputUsername;
+    std::getline(std::cin, inputUsername);
     std::cout << "Enter admin password: ";
-    std::cin >> inputPassword;
+    std::getline(std::cin, inputPassword);
 
     admin = curUser.loginAdmin(inputUsername, inputPassword);
 
@@ -139,9 +160,10 @@ void CSession::orderingSequence() {
         std::cout << "\nCurrent order:\n";
         order.printOrder();
         std::cout << "Total price: " << order.getTotalPrice() << "\nEnter item ID to add to order (0 to finish): ";
-        int itemId;
-        std::cin >> itemId;
-        
+
+        int itemId = strictInput();
+        if (itemId == -1) continue;
+
         if (itemId == 0) {
             break;
         }
@@ -154,9 +176,9 @@ void CSession::orderingSequence() {
 
     order.printOrder();
     std::cout << "\nConfirm order? (y/n): ";
-    char confirm;
-    std::cin >> confirm;
-    if (confirm != 'y' && confirm != 'Y') {
+    std::string confirmInput;
+    std::getline(std::cin, confirmInput);
+    if (confirmInput.empty() || (confirmInput[0] != 'y' && confirmInput[0] != 'Y')) {
         return;
     } 
     orderList.addOrder(order);
@@ -168,15 +190,20 @@ void CSession::orderCheck() {
     std::string customerName = curUser.getUsername();
     const auto& orders = orderList.getOrders();
 
+    bool found = false;
+
     for (const auto& order : orders) {
         if (order.getCustomerName() == customerName) {
             order.printOrder();
-            awaitForInput();
-            return;
+            std::cout << "\n";
+            found = true;
         }
     }
 
-    std::cout << "No orders found for user " << customerName << ".\n";
+    if (!found) {
+        std::cout << "No orders found for user " << customerName << ".\n";
+    }
+
     awaitForInput();
 }
 
@@ -192,19 +219,9 @@ void CSession::editMenu() {
         std::cout << "5. Save and Exit\n";
         std::cout << "Choice: ";
 
-        std::string input;
-        int choice;
-        std::getline(std::cin, input); // read entire line
+        int choice = strictInput();
+        if (choice == -1) continue;
 
-        std::stringstream ss(input);
-        if (ss >> choice && ss.eof()) {
-            // valid integer and no extra junk
-        } else {
-          std::cout << "Invalid input. Please enter a number." << std::endl;
-          awaitForInput();
-          continue;
-        }
-        
         switch(choice) {
             case 1: {
                 std::string name;
@@ -212,13 +229,16 @@ void CSession::editMenu() {
                 bool vegetarian;
                 int calories;
                 std::cout << "Enter food name: ";
-                std::cin >> name;
+                std::getline(std::cin, name);
                 std::cout << "Enter price: ";
                 std::cin >> price;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Is it vegetarian? (1 for yes, 0 for no): ";
                 std::cin >> vegetarian;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter calories: ";
                 std::cin >> calories;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addFoodItem(name, price, vegetarian, calories);
                 break;
             }
@@ -228,13 +248,16 @@ void CSession::editMenu() {
                 bool alcoholic;
                 int volume;
                 std::cout << "Enter drink name: ";
-                std::cin >> name;
+                std::getline(std::cin, name);
                 std::cout << "Enter price: ";
                 std::cin >> price;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Is it alcoholic? (1 for yes, 0 for no): ";
                 std::cin >> alcoholic;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter volume in ml: ";
                 std::cin >> volume;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addDrinkItem(name, price, alcoholic, volume);
                 break;
             }
@@ -244,20 +267,23 @@ void CSession::editMenu() {
                 bool sugarFree;
                 int calories;
                 std::cout << "Enter desert name: ";
-                std::cin >> name;
+                std::getline(std::cin, name);
                 std::cout << "Enter price: ";
                 std::cin >> price;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Is it sugar-free? (1 for yes, 0 for no): ";
                 std::cin >> sugarFree;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter calories: ";
                 std::cin >> calories;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addDesertItem(name, price, sugarFree, calories);
                 break;
             }
             case 4: {
-                int id;
                 std::cout << "Enter item ID to remove: ";
-                std::cin >> id;
+                int id = strictInput();
+                if (id == -1) continue;
                 if (!menu.removeItem(id)) {
                     std::cout << "Item not found.\n";
                     awaitForInput();
@@ -285,24 +311,14 @@ void CSession::editOrders() {
         std::cout << "3. Save and Exit\n";
         std::cout << "Choice: ";
 
-        std::string input;
-        int choice;
-        std::getline(std::cin, input); // read entire line
+        int choice = strictInput();
+        if (choice == -1) continue;
 
-        std::stringstream ss(input);
-        if (ss >> choice && ss.eof()) {
-            // valid integer and no extra junk
-        } else {
-          std::cout << "Invalid input. Please enter a number." << std::endl;
-          awaitForInput();
-          continue;
-        }
-        
         switch(choice) {
             case 1: {
-                int id;
                 std::cout << "Enter order ID to remove: ";
-                std::cin >> id;
+                int id = strictInput();
+                if (id == -1) continue;
                 if (!orderList.removeOrder(id)) {
                     std::cout << "Order not found.\n";
                     awaitForInput();
@@ -311,9 +327,9 @@ void CSession::editOrders() {
                 break;
             }
             case 2: {
-                int id;
                 std::cout << "Enter order ID to mark as finished: ";
-                std::cin >> id;
+                int id = strictInput();
+                if (id == -1) continue;
                 if (!orderList.markOrderAsFinished(id)) {
                     std::cout << "Order not found or already finished.\n";
                     awaitForInput();

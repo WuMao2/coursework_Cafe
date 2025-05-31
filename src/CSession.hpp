@@ -25,6 +25,7 @@ public:
 
     void initialize();
     void awaitForInput();
+    int strictInput();
     // User session management
     bool loginUser();
     bool registerUser();

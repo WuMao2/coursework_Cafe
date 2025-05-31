@@ -59,26 +59,35 @@ void COrderList::loadFromFile(const std::string &filename) {
         std::cerr << "Failed to open orders file for reading.\n";
         return;
     }
+
     std::string line;
+    COrder* currentOrder = nullptr;
+
     while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
         std::istringstream ss(line);
+        // Check if the line is an order header (starts with a number)
         int id;
-        std::string customerName;
-        double totalPrice;
-        bool isFinished;
+        ss >> id;
 
-        ss >> id >> customerName >> totalPrice >> isFinished;
+        if (!ss.fail()) {
+            // It's a new order
+            std::string customerName;
+            double totalPrice;
+            int isFinishedInt;
 
-        COrder order(customerName);
-        order.setId(id);
-        if (isFinished) {
-            order.markAsFinished();
-        }
+            ss >> customerName >> totalPrice >> isFinishedInt;
 
-        // Read items for the order
-        std::string itemLine;
-        while (std::getline(ss, itemLine) && !itemLine.empty()) {
-            std::istringstream itemStream(itemLine);
+            COrder order(customerName);
+            order.setId(id);
+            if (isFinishedInt) order.markAsFinished();
+
+            orders.push_back(order);
+            currentOrder = &orders.back(); // save pointer to current order
+        } else if (currentOrder != nullptr) {
+            // It's an item line
+            std::istringstream itemStream(line);
             std::string itemType;
             itemStream >> itemType;
 
@@ -86,36 +95,37 @@ void COrderList::loadFromFile(const std::string &filename) {
                 int foodId, calories;
                 std::string name;
                 double price;
-                bool vegetarian;
+                int vegetarianInt;
 
-                itemStream >> foodId >> name >> price >> vegetarian >> calories;
-                auto foodItem = std::make_shared<CFoodItem>(foodId, name, price, vegetarian, calories);
-                order.addItem(foodItem);
+                itemStream >> foodId >> name >> price >> vegetarianInt >> calories;
+                auto foodItem = std::make_shared<CFoodItem>(foodId, name, price, vegetarianInt != 0, calories);
+                currentOrder->addItem(foodItem);
             } else if (itemType == "Drink") {
                 int drinkId, volume;
                 std::string name;
                 double price;
-                bool alcoholic;
+                int alcoholicInt;
 
-                itemStream >> drinkId >> name >> price >> alcoholic >> volume;
-                auto drinkItem = std::make_shared<CDrinkItem>(drinkId, name, price, alcoholic, volume);
-                order.addItem(drinkItem);
+                itemStream >> drinkId >> name >> price >> alcoholicInt >> volume;
+                auto drinkItem = std::make_shared<CDrinkItem>(drinkId, name, price, alcoholicInt != 0, volume);
+                currentOrder->addItem(drinkItem);
             } else if (itemType == "Desert") {
                 int desertId, calories;
                 std::string name;
                 double price;
-                bool sugarFree;
+                int sugarFreeInt;
 
-                itemStream >> desertId >> name >> price >> sugarFree >> calories;
-                auto desertItem = std::make_shared<CDesertItem>(desertId, name, price, sugarFree, calories);
-                order.addItem(desertItem);
+                itemStream >> desertId >> name >> price >> sugarFreeInt >> calories;
+                auto desertItem = std::make_shared<CDesertItem>(desertId, name, price, sugarFreeInt != 0, calories);
+                currentOrder->addItem(desertItem);
             }
         }
-
-        orders.push_back(order);
     }
+
     file.close();
 }
+
+
 
 void COrderList::saveToFile(const std::string &filename) const {
     std::ofstream file(filename);

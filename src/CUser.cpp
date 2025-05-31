@@ -54,7 +54,6 @@ CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
             username = u;
             password = p;
             isLoggedIn = true;
-            id = 0;
             file.close();
             return new CAdmin(u, p, true, id);
         }
@@ -115,10 +114,11 @@ void CUser::saveChangesIntoFile() {
         std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
 
         if (fileUsername == username && filePassword == password) {
-            tempFile << username << " " << password << " " << '\n';
+        tempFile << username << " " << password << '\n';
         } else {
-            tempFile << line << '\n';
+        tempFile << line << '\n';
         }
+
     }
 
     inFile.close();

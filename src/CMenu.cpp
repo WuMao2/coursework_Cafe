@@ -95,7 +95,7 @@ void CMenu::saveToFile(const std::string &filename) const {
 
 void CMenu::loadFromFile(const std::string& filename) {
   items.clear();
-  nextId = 1; // Reset on load, will re-calculate below
+  nextId = 1;
 
   std::ifstream file(filename);
   if (!file.is_open()) {
@@ -110,29 +110,34 @@ void CMenu::loadFromFile(const std::string& filename) {
     ss >> type;
 
     if (type == "Food") {
-      int id, calories, vegetarian;
+      int id, calories;
+      bool vegetarian;
       std::string name;
       double price;
 
-      ss >> id >> name >> price;
-      ss.ignore(); // Skip space or quote
-      ss >> vegetarian >> calories;
+      ss >> id >> name >> price >> std::boolalpha >> vegetarian >> calories;
 
-      items.push_back(std::make_shared<CFoodItem>(id, name, price, vegetarian, calories));
-      if (id >= nextId) nextId = id + 1;  // update nextId to be safe
-    }
+      if (ss.fail()) {
+          std::cerr << "Failed to parse Food item: " << line << "\n";
+      } else {
+          items.push_back(std::make_shared<CFoodItem>(id, name, price, vegetarian, calories));
+          if (id >= nextId) nextId = id + 1;
+      }
+}
+
     else if (type == "Drink") {
       int id, volume;
       bool alcoholic;
       std::string name;
       double price;
 
-      ss >> id >> name >> price;
-      ss.ignore(); // Skip space or quote
-      ss >> std::boolalpha >> alcoholic >> volume;
-
-      items.push_back(std::make_shared<CDrinkItem>(id, name, price, alcoholic, volume));
-      if (id >= nextId) nextId = id + 1;  // update nextId to be safe
+      ss >> id >> name >> price >> std::boolalpha >> alcoholic >> volume;
+      if (ss) {
+        items.push_back(std::make_shared<CDrinkItem>(id, name, price, alcoholic, volume));
+        if (id >= nextId) nextId = id + 1;
+      } else {
+        std::cerr << "Failed to parse Drink item: " << line << "\n";
+      }
     }
     else if (type == "Desert") {
       int id, calories;
@@ -140,20 +145,23 @@ void CMenu::loadFromFile(const std::string& filename) {
       std::string name;
       double price;
 
-      ss >> id >> name >> price;
-      ss.ignore(); // Skip space or quote
-      ss >> std::boolalpha >> sugarFree >> calories;
-
-      items.push_back(std::make_shared<CDesertItem>(id, name, price, sugarFree, calories));
-      if (id >= nextId) nextId = id + 1;  // update nextId to be safe
+      ss >> id >> name >> price >> std::boolalpha >> sugarFree >> calories;
+      if (ss) {
+        items.push_back(std::make_shared<CDesertItem>(id, name, price, sugarFree, calories));
+        if (id >= nextId) nextId = id + 1;
+      } else {
+        std::cerr << "Failed to parse Desert item: " << line << "\n";
+      }
     }
-    // Add other types here as needed
+    else {
+      std::cerr << "Unknown item type in menu: " << type << "\n";
+    }
   }
 
   file.close();
-  this->sortAndReassignIds(); // Sort and reassign IDs after loading
-  std::cout << "Menu loaded successfully from " << filename << ".\n";
+  this->sortAndReassignIds();
 }
+
 
 const std::vector<std::shared_ptr<CMenuItem>>& CMenu::getItems() const {
   return items;
