@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <sstream>
 #include "CUser.hpp"
 #include "CAdmin.hpp"
 #include "CSession.hpp"
@@ -24,8 +26,18 @@ int main() {
             std::cout << "4. Exit\n";
             std::cout << "Choice: ";
 
+            std::string input;
             int choice;
-            std::cin >> choice;
+            std::getline(std::cin, input); // read entire line
+
+            std::stringstream ss(input);
+            if (ss >> choice && ss.eof()) {
+                // valid integer and no extra junk
+            } else {
+                std::cout << "Invalid input. Please enter a number." << std::endl;
+                session.awaitForInput();
+                continue;
+            }
 
             switch (choice) {
                 case 1:
@@ -53,8 +65,18 @@ int main() {
             std::cout << "5. Exit\n";
             std::cout << "Choice: ";
 
+            std::string input;
             int choice;
-            std::cin >> choice;
+            std::getline(std::cin, input); // read entire line
+
+            std::stringstream ss(input);
+            if (ss >> choice && ss.eof()) {
+                // valid integer and no extra junk
+            } else {
+                std::cout << "Invalid input. Please enter a number." << std::endl;
+                session.awaitForInput();
+                continue;
+            }
 
             switch (choice) {
                 case 1:
@@ -85,8 +107,18 @@ int main() {
             std::cout << "5. Exit\n";
             std::cout << "Choice: ";
 
+            std::string input;
             int choice;
-            std::cin >> choice;
+            std::getline(std::cin, input); // read entire line
+
+            std::stringstream ss(input);
+            if (ss >> choice && ss.eof()) {
+                // valid integer and no extra junk
+            } else {
+                std::cout << "Invalid input. Please enter a number." << std::endl;
+                session.awaitForInput();
+                continue;
+            }
 
             switch (choice) {
                 case 1:

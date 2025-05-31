@@ -1,4 +1,5 @@
 #include "CSession.hpp"
+#include <sstream>
 
 CSession::~CSession() {
     if (curUser.getLoggedIn()) {
@@ -191,9 +192,19 @@ void CSession::editMenu() {
         std::cout << "5. Save and Exit\n";
         std::cout << "Choice: ";
 
+        std::string input;
         int choice;
-        std::cin >> choice;
+        std::getline(std::cin, input); // read entire line
 
+        std::stringstream ss(input);
+        if (ss >> choice && ss.eof()) {
+            // valid integer and no extra junk
+        } else {
+          std::cout << "Invalid input. Please enter a number." << std::endl;
+          awaitForInput();
+          continue;
+        }
+        
         switch(choice) {
             case 1: {
                 std::string name;
@@ -274,9 +285,19 @@ void CSession::editOrders() {
         std::cout << "3. Save and Exit\n";
         std::cout << "Choice: ";
 
+        std::string input;
         int choice;
-        std::cin >> choice;
+        std::getline(std::cin, input); // read entire line
 
+        std::stringstream ss(input);
+        if (ss >> choice && ss.eof()) {
+            // valid integer and no extra junk
+        } else {
+          std::cout << "Invalid input. Please enter a number." << std::endl;
+          awaitForInput();
+          continue;
+        }
+        
         switch(choice) {
             case 1: {
                 int id;
