@@ -5,8 +5,7 @@
 
 std::string CFoodItem::serialize() const {
     std::ostringstream oss;
-    oss << "Food " << id << " " << name << " " << price << " \""
-        << "\" " << (vegetarian ? "true" : "false") << " " << calories;
+    oss << "Food " << id << " " << name << " " << price << (vegetarian ? "true" : "false") << " " << calories;
     return oss.str();
 }
 

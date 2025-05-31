@@ -5,8 +5,7 @@
 
 std::string CDesertItem::serialize() const {
     std::ostringstream oss;
-    oss << "Desert " << " " << name << " " << price << " \""
-        << "\" " << (sugarFree ? "true" : "false") << " " << calories;
+    oss << "Desert " << " " << name << " " << price << (sugarFree ? "true" : "false") << " " << calories;
     return oss.str();
 }
 

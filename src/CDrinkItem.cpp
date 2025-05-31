@@ -5,8 +5,7 @@
 
 std::string CDrinkItem::serialize() const {
     std::ostringstream oss;
-    oss << "Drink " << id << " " << name << " " << price << " \""
-        << "\" " << (alcoholic ? "true" : "false") << " " << volume;
+    oss << "Drink " << id << " " << name << " " << price << (alcoholic ? "true" : "false") << " " << volume;
     return oss.str();
 }
 
