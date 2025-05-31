@@ -17,15 +17,19 @@ bool CUser::loginFromFile(const std::string& u, const std::string& p) {
     while (std::getline(file, line)) {
         size_t firstSpace = line.find(' ');
         std::string fileUsername = line.substr(0, firstSpace);
-        std::string filePassword = line.substr(firstSpace + 1);
+        size_t secondSpace = line.find(' ', firstSpace + 1);
+        std::string filePassword = line.substr(firstSpace + 1, 
+            secondSpace != std::string::npos ? secondSpace - firstSpace - 1 : std::string::npos);
 
         if (fileUsername == u && filePassword == p) {
             username = u;
             password = p;
             isLoggedIn = true;
+            file.close();
             return true;
         }
     }
+    file.close();
     return false;
 }
 
@@ -51,10 +55,11 @@ CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
             password = p;
             isLoggedIn = true;
             id = 0;
+            file.close();
             return new CAdmin(u, p, true, id);
         }
     }
-
+    file.close();
     return nullptr;
 }
 
@@ -71,6 +76,7 @@ bool CUser::registerIntoFile(const std::string& u, const std::string& p) {
         std::string existingUsername = line.substr(0, firstSpace);
         if (existingUsername == u) {
             std::cout << "Username already exists. Please choose a different one.\n";
+            inFile.close();
             return false;
         }
     }
@@ -94,6 +100,8 @@ void CUser::saveChangesIntoFile() {
     std::ofstream tempFile("temp.txt");
 
     if (!inFile.is_open() || !tempFile.is_open()) {
+        inFile.close();
+        tempFile.close();
         std::cerr << "Unable to open files for updating user data.\n";
         return;
     }

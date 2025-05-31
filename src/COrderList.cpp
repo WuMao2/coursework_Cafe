@@ -25,15 +25,12 @@ void COrderList::removeOrder(const std::string &customerName) {
 
 bool COrderList::markOrderAsFinished(int id) {
     for (auto &order : orders) {
-        if (order.getCustomerName() == std::to_string(id)) { // Assuming id is customer name here
-            if (!order.isOrderFinished()) {
-                order.markAsFinished(); // Assuming COrder has a method to mark as finished
-                return true;
-            }
-            return false; // Already finished
+        if (order.getId() == id) {
+            order.markAsFinished();
+            return true;
         }
     }
-    return false; // Order not found
+    return false;
 }
 
 bool COrderList::removeOrder(int id) {

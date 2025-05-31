@@ -159,6 +159,8 @@ void CSession::orderingSequence() {
         return;
     } 
     orderList.addOrder(order);
+    orderList.fixOrderIds();
+    orderList.saveToFile("orders.txt");
 }
 
 void CSession::orderCheck() {
