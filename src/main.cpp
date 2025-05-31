@@ -1,79 +1,117 @@
 #include <iostream>
-#include <limits>
 #include "CUser.hpp"
 #include "CAdmin.hpp"
 #include "CSession.hpp"
-
-
+#include "CMenu.hpp"
+#include "CMenuItem.hpp"
+#include "CFoodItem.hpp"
+#include "CDrinkItem.hpp"
+#include "CDesertItem.hpp"
+#include "COrder.hpp"
+#include "COrderList.hpp"
 
 int main() {
     CSession session;
+    session.initialize();
 
-    bool running = true;
-    while (running) {
-        std::cout << "\nMain Menu:\n";
-        std::cout << "1. Login as User\n";
-        std::cout << "2. Register User\n";
-        std::cout << "3. Logout User\n";
-        std::cout << "4. Login as Admin\n";
-        std::cout << "5. Logout Admin\n";
-        std::cout << "6. Display Status\n";
-        std::cout << "7. Exit\n";
+    while (session.isRunning()) {
+        system(CLEAR_CMD);
+        if (!session.isUserLoggedIn() && !session.isAdminLoggedIn()) {
+            std::cout << "\n=== Main Menu ===\n";
+            std::cout << "1. Login as User\n";
+            std::cout << "2. Register as User\n";
+            std::cout << "3. Login as Admin\n";
+            std::cout << "4. Exit\n";
+            std::cout << "Choice: ";
 
-        int choice;
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
+            int choice;
+            std::cin >> choice;
 
-        std::string username, password;
+            switch (choice) {
+                case 1:
+                    session.loginUser();
+                    break;
+                case 2:
+                    session.registerUser();
+                    break;
+                case 3:
+                    session.loginAdmin();
+                    break;
+                case 4:
+                    session.endSession();
+                    break;
+                default:
+                    std::cout << "Invalid choice.\n";
+                    session.awaitForInput();
+            }
+        } else if (session.isUserLoggedIn() && !session.isAdminLoggedIn()) {
+            std::cout << "\n=== User Menu ===\n";
+            std::cout << "1. Make an Order\n";
+            std::cout << "2. Check Order\n";
+            std::cout << "3. Check Status\n";
+            std::cout << "4. Logout\n";
+            std::cout << "5. Exit\n";
+            std::cout << "Choice: ";
 
-        switch (choice) {
-            case 1:
-                std::cout << "Enter username: ";
-                std::cin >> username;
-                std::cout << "Enter password: ";
-                std::cin >> password;
-                if (session.loginUser(username, password)) {
-                    std::cout << "User logged in successfully!\n";
-                } else {
-                    std::cout << "Login failed!\n";
-                }
-                break;
-            case 2:
-                std::cout << "Enter username: ";
-                std::cin >> username;
-                std::cout << "Enter password: ";
-                std::cin >> password;
-                if (session.registerUser(username, password)) {
-                    std::cout << "User registered successfully!\n";
-                }
-                break;
-            case 3:
-                session.logoutUser();
-                break;
-            case 4:
-                std::cout << "Enter admin username: ";
-                std::cin >> username;
-                std::cout << "Enter admin password: ";
-                std::cin >> password;
-                if (session.loginAdmin(username, password)) {
-                    std::cout << "Admin logged in successfully!\n";
-                } else {
-                    std::cout << "Admin login failed!\n";
-                }
-                break;
-            case 5:
-                session.logoutAdmin();
-                break;
-            case 6:
-                session.displayUserStatus();
-                break;
-            case 7:
-                running = false;
-                break;
-            default:
-                std::cout << "Invalid choice. Please try again.\n";
+            int choice;
+            std::cin >> choice;
+
+            switch (choice) {
+                case 1:
+                  session.orderingSequence();
+                  break;
+                case 2:
+                  session.orderCheck();
+                  break;
+                case 3:
+                  session.displayUserStatus();
+                  break;
+                case 4:
+                  session.logout();
+                  break;
+                case 5:
+                  session.endSession();
+                  break;
+                default:
+                    std::cout << "Invalid choice.\n";
+                    session.awaitForInput();
+            }
+        } else if (session.isAdminLoggedIn()) {
+            std::cout << "\n=== Admin Menu ===\n";
+            std::cout << "1. Edit Menu\n";
+            std::cout << "2. Edit Orders\n";
+            std::cout << "3. Check Status\n";
+            std::cout << "4. Logout\n";
+            std::cout << "5. Exit\n";
+            std::cout << "Choice: ";
+
+            int choice;
+            std::cin >> choice;
+
+            switch (choice) {
+                case 1:
+                  session.editMenu();
+                  break;
+                case 2:
+                  session.editOrders();
+                  break;
+                case 3:
+                  session.displayAdminStatus();
+                  break;
+                case 4:
+                  session.logout();
+                  break;
+                case 5:
+                  session.endSession();
+                  break;
+                default:
+                    std::cout << "Invalid choice.\n";
+                    session.awaitForInput();
+            }
         }
     }
 
+    std::cout << "Exiting application. Goodbye!\n";
+    session.awaitForInput();
     return 0;
 }

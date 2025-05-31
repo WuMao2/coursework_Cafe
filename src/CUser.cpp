@@ -1,40 +1,32 @@
 #include "CUser.hpp"
 #include "CAdmin.hpp"
-
 #include <iostream>
 #include <fstream>
 
 CUser::CUser(const std::string& u, const std::string& p, bool s)
-    : username(u), password(p), isLoggedIn(s), points(0) {}
+    : username(u), password(p), isLoggedIn(s) {}
 
-void CUser::loginFromFile(const std::string& u, const std::string& p) {
+bool CUser::loginFromFile(const std::string& u, const std::string& p) {
     std::ifstream file("users.txt");
     if (!file.is_open()) {
         std::cerr << "Unable to open users.txt\n";
-        return;
+        return false;
     }
 
     std::string line;
     while (std::getline(file, line)) {
         size_t firstSpace = line.find(' ');
-        size_t secondSpace = line.find(' ', firstSpace + 1);
-        size_t thirdSpace = line.find(' ', secondSpace + 1);
-
         std::string fileUsername = line.substr(0, firstSpace);
-        std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-        int filePoints = std::stoi(line.substr(secondSpace + 1, thirdSpace - secondSpace - 1));
+        std::string filePassword = line.substr(firstSpace + 1);
 
         if (fileUsername == u && filePassword == p) {
             username = u;
             password = p;
             isLoggedIn = true;
-            points = filePoints;
-            std::cout << "Login successful!\n";
-            return;
+            return true;
         }
     }
-
-    std::cout << "Login failed!\n";
+    return false;
 }
 
 CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
@@ -58,20 +50,19 @@ CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
             username = u;
             password = p;
             isLoggedIn = true;
-            std::cout << "Admin login successful!\n";
+            id = 0;
             return new CAdmin(u, p, true, id);
         }
     }
 
-    std::cout << "Admin login failed!\n";
     return nullptr;
 }
 
-void CUser::registerIntoFile(const std::string& u, const std::string& p) {
+bool CUser::registerIntoFile(const std::string& u, const std::string& p) {
     std::ifstream inFile("users.txt");
     if (!inFile.is_open()) {
         std::cerr << "Unable to open users.txt for reading.\n";
-        return;
+        return false;
     }
 
     std::string line;
@@ -80,7 +71,7 @@ void CUser::registerIntoFile(const std::string& u, const std::string& p) {
         std::string existingUsername = line.substr(0, firstSpace);
         if (existingUsername == u) {
             std::cout << "Username already exists. Please choose a different one.\n";
-            return;
+            return false;
         }
     }
     inFile.close();
@@ -88,11 +79,12 @@ void CUser::registerIntoFile(const std::string& u, const std::string& p) {
     std::ofstream outFile("users.txt", std::ios::app);
     if (!outFile.is_open()) {
         std::cerr << "Unable to open users.txt for writing.\n";
-        return;
+        return false;
     }
 
-    outFile << u << " " << p << " " << 0 << '\n';
-    std::cout << "User registered successfully!\n";
+    outFile << u << " " << p << '\n';
+    outFile.close();
+    return true;
 }
 
 void CUser::saveChangesIntoFile() {
@@ -115,7 +107,7 @@ void CUser::saveChangesIntoFile() {
         std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
 
         if (fileUsername == username && filePassword == password) {
-            tempFile << username << " " << password << " " << points << '\n';
+            tempFile << username << " " << password << " " << '\n';
         } else {
             tempFile << line << '\n';
         }
@@ -132,7 +124,6 @@ void CUser::logout() {
     username = "Unknown Customer";
     password.clear();
     isLoggedIn = false;
-    std::cout << "Logged out successfully.\n";
 }
 
 std::string CUser::getUsername() const {
@@ -141,12 +132,4 @@ std::string CUser::getUsername() const {
 
 bool CUser::getLoggedIn() const {
     return isLoggedIn;
-}
-
-int CUser::getPoints() const {
-    return points;
-}
-
-void CUser::setPoints(int value) {
-    points = value;
 }

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CUser.hpp"
 
 class CAdmin : public CUser {
@@ -13,3 +12,4 @@ public:
     // Optional getter for employee ID if needed later
     long int getEmployeeId() const;
 };
+
