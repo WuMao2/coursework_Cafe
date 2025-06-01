@@ -8,6 +8,7 @@ This project simulates a basic cafe environment where customers can view the men
 
 ## 🚀 Features
 
+
 - [x] 📋 Menu display with categorized items
 - [x] 🛒 Order placement and managment
 - [x] ✏️ Add / Edit / Remove menu items (admin)
@@ -15,12 +16,12 @@ This project simulates a basic cafe environment where customers can view the men
 - [x] 👤 User authentication (optional/admin mode)
 - [x] 🖥️ Command-line interface
 
+
 ## 🛠️ Technologies Used
 
 - **Programming Language:** C++20
 - **Version Control:** GitHub
 - **Building:** CMake
-
 
 ## Usage
 
