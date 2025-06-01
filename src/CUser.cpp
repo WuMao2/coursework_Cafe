@@ -2,6 +2,7 @@
 #include "CAdmin.hpp"
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 CUser::CUser(const std::string& u, const std::string& p, bool s)
     : username(u), password(p), isLoggedIn(s) {}
@@ -13,14 +14,8 @@ bool CUser::loginFromFile(const std::string& u, const std::string& p) {
         return false;
     }
 
-    std::string line;
-    while (std::getline(file, line)) {
-        size_t firstSpace = line.find(' ');
-        std::string fileUsername = line.substr(0, firstSpace);
-        size_t secondSpace = line.find(' ', firstSpace + 1);
-        std::string filePassword = line.substr(firstSpace + 1, 
-            secondSpace != std::string::npos ? secondSpace - firstSpace - 1 : std::string::npos);
-
+    std::string fileUsername, filePassword;
+    while (file >> std::quoted(fileUsername) >> std::quoted(filePassword)) {
         if (fileUsername == u && filePassword == p) {
             username = u;
             password = p;
@@ -40,16 +35,9 @@ CAdmin* CUser::loginAdmin(const std::string& u, const std::string& p) {
         return nullptr;
     }
 
-    std::string line;
-    while (std::getline(file, line)) {
-        size_t firstSpace = line.find(' ');
-        size_t secondSpace = line.find(' ', firstSpace + 1);
-        size_t thirdSpace = line.find(' ', secondSpace + 1);
-
-        std::string fileUsername = line.substr(0, firstSpace);
-        std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-        int id = std::stoi(line.substr(secondSpace + 1, thirdSpace - secondSpace - 1));
-
+    std::string fileUsername, filePassword;
+    int id;
+    while (file >> std::quoted(fileUsername) >> std::quoted(filePassword) >> id) {
         if (fileUsername == u && filePassword == p) {
             username = u;
             password = p;
@@ -69,10 +57,8 @@ bool CUser::registerIntoFile(const std::string& u, const std::string& p) {
         return false;
     }
 
-    std::string line;
-    while (std::getline(inFile, line)) {
-        size_t firstSpace = line.find(' ');
-        std::string existingUsername = line.substr(0, firstSpace);
+    std::string existingUsername, existingPassword;
+    while (inFile >> std::quoted(existingUsername) >> std::quoted(existingPassword)) {
         if (existingUsername == u) {
             std::cout << "Username already exists. Please choose a different one.\n";
             inFile.close();
@@ -87,7 +73,7 @@ bool CUser::registerIntoFile(const std::string& u, const std::string& p) {
         return false;
     }
 
-    outFile << u << " " << p << '\n';
+    outFile << std::quoted(u) << ' ' << std::quoted(p) << '\n';
     outFile.close();
     return true;
 }
@@ -105,20 +91,13 @@ void CUser::saveChangesIntoFile() {
         return;
     }
 
-    std::string line;
-    while (std::getline(inFile, line)) {
-        size_t firstSpace = line.find(' ');
-        size_t secondSpace = line.find(' ', firstSpace + 1);
-
-        std::string fileUsername = line.substr(0, firstSpace);
-        std::string filePassword = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-
+    std::string fileUsername, filePassword;
+    while (inFile >> std::quoted(fileUsername) >> std::quoted(filePassword)) {
         if (fileUsername == username && filePassword == password) {
-        tempFile << username << " " << password << '\n';
+            tempFile << std::quoted(username) << ' ' << std::quoted(password) << '\n';
         } else {
-        tempFile << line << '\n';
+            tempFile << std::quoted(fileUsername) << ' ' << std::quoted(filePassword) << '\n';
         }
-
     }
 
     inFile.close();

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <iomanip>
 
 class CMenuItem {
   protected:

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 void CMenu::addFoodItem(const std::string &name, double price, bool vegetarian, int calories) {
   items.push_back(std::make_shared<CFoodItem>(nextId++, name, price, vegetarian, calories));
@@ -115,7 +116,7 @@ void CMenu::loadFromFile(const std::string& filename) {
       std::string name;
       double price;
 
-      ss >> id >> name >> price >> std::boolalpha >> vegetarian >> calories;
+      ss >> id >> std::quoted(name) >> price >> std::boolalpha >> vegetarian >> calories;
 
       if (ss.fail()) {
           std::cerr << "Failed to parse Food item: " << line << "\n";
@@ -131,7 +132,7 @@ void CMenu::loadFromFile(const std::string& filename) {
       std::string name;
       double price;
 
-      ss >> id >> name >> price >> std::boolalpha >> alcoholic >> volume;
+      ss >> id >> std::quoted(name) >> price >> std::boolalpha >> alcoholic >> volume;
       if (ss) {
         items.push_back(std::make_shared<CDrinkItem>(id, name, price, alcoholic, volume));
         if (id >= nextId) nextId = id + 1;
@@ -145,7 +146,7 @@ void CMenu::loadFromFile(const std::string& filename) {
       std::string name;
       double price;
 
-      ss >> id >> name >> price >> std::boolalpha >> sugarFree >> calories;
+      ss >> id >> std::quoted(name) >> price >> std::boolalpha >> sugarFree >> calories;
       if (ss) {
         items.push_back(std::make_shared<CDesertItem>(id, name, price, sugarFree, calories));
         if (id >= nextId) nextId = id + 1;
