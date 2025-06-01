@@ -8,15 +8,22 @@ This project simulates a basic cafe environment where customers can view the men
 
 ## 🚀 Features
 
-- [ ] 📋 Menu display with categorized items
-- [ ] 🛒 Order placement and managment
-- [ ] ✏️ Add / Edit / Remove menu items (admin)
-- [ ] 💾 Persistent data storage using files or database
+- [x] 📋 Menu display with categorized items
+- [x] 🛒 Order placement and managment
+- [x] ✏️ Add / Edit / Remove menu items (admin)
+- [x] 💾 Persistent data storage using files
 - [x] 👤 User authentication (optional/admin mode)
-- [ ] 🖥️ Command-line / GUI-based interface (depending on implementation)
+- [x] 🖥️ Command-line interface
 
 ## 🛠️ Technologies Used
 
 - **Programming Language:** C++20
 - **Version Control:** GitHub
 - **Building:** CMake
+
+
+## Usage
+
+1. Download Release or build yourself
+2. Place files from txt folder in the same directory as the .exe
+3. Launch .exe file

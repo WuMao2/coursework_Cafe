@@ -1,0 +1,9 @@
+Food 1 "Veggie Burger" 7.99 true 450
+Food 2 "Chicken Sandwich" 8.49 false 520
+Food 3 "Caesar Salad" 6.75 true 300
+Drink 4 "Orange Juice" 3.25 false 250
+Drink 5 "Beer" 4.50 true 330
+Drink 6 "Latte" 3.75 false 200
+Desert 7 "Chocolate Cake" 5.00 false 600
+Desert 8 "Fruit Bowl" 4.25 true 220
+Desert 9 "Vanilla Ice Cream" 4.00 false 480
