@@ -43,6 +43,40 @@ int CSession::strictInput() {
     }
 }
 
+double CSession::strictInputDouble() {
+    std::string input;
+    double value;
+    std::getline(std::cin, input);
+
+    std::stringstream ss(input);
+    if (ss >> value && ss.eof()) {
+        return value;
+    } else {
+        std::cout << "Invalid input. Please enter a valid number." << std::endl;
+        awaitForInput();
+        return -1;
+    }
+}
+
+bool CSession::strictInputBool() {
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) {
+        return false; // Default to false if no input
+    }
+
+    char firstChar = input[0];
+    if (firstChar == 'y' || firstChar == 'Y') {
+        return true;
+    } else if (firstChar == 'n' || firstChar == 'N') {
+        return false;
+    } else {
+        std::cout << "Invalid input. Please enter 'y' or 'n'." << std::endl;
+        return strictInputBool(); // Retry
+    }
+}
+
 bool CSession::loginUser() {
     if (curUser.getLoggedIn()) {
         std::cout << "You are already logged in as " << curUser.getUsername() << ".\n";
@@ -227,17 +261,17 @@ void CSession::editMenu() {
                 std::string name;
                 double price;
                 bool vegetarian;
-                int calories;
                 std::cout << "Enter food name: ";
                 std::getline(std::cin, name);
                 std::cout << "Enter price: ";
-                std::cin >> price;
+                price = strictInputDouble();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Is it vegetarian? (1 for yes, 0 for no): ";
-                std::cin >> vegetarian;
+                std::cout << "Is it vegetarian? (y/n): ";
+                vegetarian = strictInputBool();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter calories: ";
-                std::cin >> calories;
+                int calories = strictInput();
+                if (calories == -1) continue;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addFoodItem(name, price, vegetarian, calories);
                 break;
@@ -246,17 +280,17 @@ void CSession::editMenu() {
                 std::string name;
                 double price;
                 bool alcoholic;
-                int volume;
                 std::cout << "Enter drink name: ";
                 std::getline(std::cin, name);
                 std::cout << "Enter price: ";
-                std::cin >> price;
+                price = strictInputDouble();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Is it alcoholic? (1 for yes, 0 for no): ";
-                std::cin >> alcoholic;
+                std::cout << "Is it alcoholic? (y/n): ";
+                alcoholic = strictInputBool();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter volume in ml: ";
-                std::cin >> volume;
+                int volume = strictInput();
+                if (volume == -1) continue;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addDrinkItem(name, price, alcoholic, volume);
                 break;
@@ -265,17 +299,17 @@ void CSession::editMenu() {
                 std::string name;
                 double price;
                 bool sugarFree;
-                int calories;
                 std::cout << "Enter desert name: ";
                 std::getline(std::cin, name);
                 std::cout << "Enter price: ";
-                std::cin >> price;
+                price = strictInputDouble();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cout << "Is it sugar-free? (1 for yes, 0 for no): ";
-                std::cin >> sugarFree;
+                std::cout << "Is it sugar-free? (y/n): ";
+                sugarFree = strictInputBool();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "Enter calories: ";
-                std::cin >> calories;
+                int calories = strictInput();
+                if (calories == -1) continue;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 menu.addDesertItem(name, price, sugarFree, calories);
                 break;

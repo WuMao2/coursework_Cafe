@@ -17,8 +17,11 @@ void CDrinkItem::edit(const std::string& newName, double newPrice, bool isAlcoho
 }
 
 void CDrinkItem::display() const {
-        std::cout << "[Drink] ID: " << id << ", Name: " << name
-                  << ", Price: $" << price << ", Alc: " 
-                  << (isAlcoholic() ? "Yes" : "No")
-                  << ", Calories: " << volume << '\n';
+    std::cout << std::left << std::setw(10) << "[Drink]"
+              << "ID: "       << std::setw(4)  << id
+              << "Name: "     << std::setw(20) << name
+              << "Price: $"   << std::right << std::fixed << std::setprecision(2) << std::setw(6) << price << "  "
+              << std::left
+              << "Alocoholic: " << std::setw(3) << (isAlcoholic() ? "Yes" : "No") << "  "
+              << "Volume: "   << volume << " ml\n";
 }
