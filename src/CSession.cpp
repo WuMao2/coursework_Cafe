@@ -1,140 +1,28 @@
 #include "CSession.hpp"
 #include <sstream>
 #include <limits>
+#include "Utils.hpp"
 
 CSession::~CSession() {
-    if (curUser.getLoggedIn()) {
-        curUser.saveChangesIntoFile();
-    }
+
     if (admin != nullptr) {
         delete admin;
     }
-}
-
-void CSession::awaitForInput() {
-    std::cout << "\nPress Enter to continue...";
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::cin.get();
 }
 
 void CSession::initialize() {
     // Load menu and orders from files
     menu.loadFromFile("menu.txt");
     orderList.loadFromFile("orders.txt");
-}
-
-int CSession::strictInput() {
-    std::string input;
-    int choice;
-
-    // Clear previous errors (if any)
-    std::cin.clear();
-
-    std::getline(std::cin, input);
-
-    std::stringstream ss(input);
-    if (ss >> choice && ss.eof()) {
-        return choice;
-    } else {
-        std::cout << "Invalid input. Please enter a number." << std::endl;
-        awaitForInput();
-        return -1;
-    }
-}
-
-double CSession::strictInputDouble() {
-    std::string input;
-    double value;
-    std::getline(std::cin, input);
-
-    std::stringstream ss(input);
-    if (ss >> value && ss.eof()) {
-        return value;
-    } else {
-        std::cout << "Invalid input. Please enter a valid number." << std::endl;
-        awaitForInput();
-        return -1;
-    }
-}
-
-bool CSession::strictInputBool() {
-    std::string input;
-    std::getline(std::cin, input);
-
-    if (input.empty()) {
-        return false; // Default to false if no input
-    }
-
-    char firstChar = input[0];
-    if (firstChar == 'y' || firstChar == 'Y') {
-        return true;
-    } else if (firstChar == 'n' || firstChar == 'N') {
-        return false;
-    } else {
-        std::cout << "Invalid input. Please enter 'y' or 'n'." << std::endl;
-        return strictInputBool(); // Retry
-    }
-}
-
-bool CSession::loginUser() {
-    if (curUser.getLoggedIn()) {
-        std::cout << "You are already logged in as " << curUser.getUsername() << ".\n";
-        awaitForInput();
-        return true;
-    }
-    std::string inputUsername, inputPassword;
-    std::cout << "Enter username: ";
-    std::getline(std::cin, inputUsername);
-    std::cout << "Enter password: ";
-    std::getline(std::cin, inputPassword);
-    if (curUser.loginFromFile(inputUsername, inputPassword)) {
-        std::cout << "Login successful. Welcome, " << curUser.getUsername() << "!\n";
-        awaitForInput();
-    } else {
-        std::cout << "Login failed. Please try again.\n";
-        awaitForInput();
-        return false;
-    }
-    return curUser.getLoggedIn();
-}
-
-bool CSession::registerUser() {
-    if (!curUser.getLoggedIn()) {
-        std::string username, password;
-        std::cout << "Enter username: ";
-        std::getline(std::cin, username);
-        std::cout << "Enter password: ";
-        std::getline(std::cin, password);
-        if (curUser.registerIntoFile(username, password)) {
-            std::cout << "Registration successful. You can now log in.\n";
-            awaitForInput();
-        } else {
-            std::cout << "Registration failed. Please try again.\n";
-            awaitForInput();
-            return false;
-        }
-        
-        return true;
-    }
-    return false;
+    tables.loadTablesFromFile("tables.txt");
 }
 
 void CSession::logout() {
     if (admin != nullptr) {
       delete admin;
       admin = nullptr;
-      curUser.logout();
-    } else {
-      if (curUser.getLoggedIn()) {
-        curUser.saveChangesIntoFile();
-        curUser.logout();
-      }
     }
-}
-
-bool CSession::isUserLoggedIn() const {
-    return curUser.getLoggedIn();
+    curTableId = 0;
 }
 
 bool CSession::loginAdmin() {
@@ -148,7 +36,20 @@ bool CSession::loginAdmin() {
     std::cout << "Enter admin password: ";
     std::getline(std::cin, inputPassword);
 
-    admin = curUser.loginAdmin(inputUsername, inputPassword);
+    std::ifstream file("admins.txt");
+    if (!file.is_open()) {
+        std::cerr << "Unable to open admins.txt\n";
+    }
+
+    std::string fileUsername, filePassword;
+    int id;
+    while (file >> std::quoted(fileUsername) >> std::quoted(filePassword) >> id) {
+        if (fileUsername == inputUsername && filePassword == inputPassword) {
+            file.close();
+            admin = new CAdmin(inputUsername, inputPassword, true, id);
+        }
+    }
+    file.close();
 
     if (admin) {
         std::cout << "Admin logged in successfully.\n";
@@ -164,17 +65,9 @@ bool CSession::isAdminLoggedIn() const {
     return (admin != nullptr);
 }
 
-CUser& CSession::getUser() {
-    return curUser;
-}
 
 CAdmin* CSession::getAdmin() {
     return admin;
-}
-
-void CSession::displayUserStatus() {
-    std::cout << "User " << curUser.getUsername() << " is logged in." << std::endl;
-    awaitForInput();
 }
 
 void CSession::displayAdminStatus() {
@@ -184,28 +77,58 @@ void CSession::displayAdminStatus() {
 }
 
 void CSession::orderingSequence() {
-    std::string customerName = curUser.getUsername();
-    COrder order(customerName);
-    order.setId(orderList.getOrders().size() + 1);
+    if (curTableId == 0) {
+        std::cout << "Please select a table first.\n";
+        awaitForInput();
+        return;
+    }
+
+    COrder order(orderList.getOrders().size() + 1, curTableId);
 
     while (true) {
         system(CLEAR_CMD);
         this->displayMenu();
         std::cout << "\nCurrent order:\n";
         order.printOrder();
-        std::cout << "Total price: " << order.getTotalPrice() << "\nEnter item ID to add to order (0 to finish): ";
+        //remove item from order or add item to order
+        std::cout << "\n=== Ordering Menu ===\n";
+        std::cout << "1. Add Item to Order\n";
+        std::cout << "2. Remove Item from Order\n";
+        std::cout << "3. Finish Order\n";
+        std::cout << "Choice: ";
+        
+        int choice = strictInput();
+        if (choice == -1) continue;
 
-        int itemId = strictInput();
-        if (itemId == -1) continue;
+        if (choice == 1) {
+            std::cout << "Enter item ID to add: ";
+            int itemId = strictInput();
+            if (itemId == -1) continue;
 
-        if (itemId == 0) {
-            break;
+            auto item = menu.findById(itemId);
+            if (item) {
+                order.addItem(item);
+                std::cout << "Item added to order.\n";
+            } else {
+                std::cout << "Item not found.\n";
+            }
+        } else if (choice == 2) {
+            std::cout << "Enter item ID to remove: ";
+            int itemId = strictInput();
+            if (itemId == -1) continue;
+
+            order.removeItem(itemId);
+            std::cout << "Item removed from order.\n";
+        } else if (choice == 3) {
+            break; // Finish ordering
+        } else {
+            std::cout << "Invalid choice. Please try again.\n";
         }
-
-        auto item = menu.findById(itemId);
-        if (item) {
-            order.addItem(item);
-        }
+    }
+    system(CLEAR_CMD);
+    //check if order is empty
+    if (order.getOrderItems().empty()) {
+        return;
     }
 
     order.printOrder();
@@ -221,23 +144,25 @@ void CSession::orderingSequence() {
 }
 
 void CSession::orderCheck() {
-    std::string customerName = curUser.getUsername();
-    const auto& orders = orderList.getOrders();
-
+    if (curTableId == 0) {
+        std::cout << "Please select a table first.\n";
+        awaitForInput();
+        return;
+    }
+    //display all orders for the current table
+    system(CLEAR_CMD);
+    std::cout << "Current table: " << curTableId << "\n";
+    std::cout << "=== Current Orders ===\n";
     bool found = false;
-
-    for (const auto& order : orders) {
-        if (order.getCustomerName() == customerName) {
+    for (const auto &order : orderList.getOrders()) {
+        if (order.getTableId() == curTableId) {
             order.printOrder();
-            std::cout << "\n";
             found = true;
         }
     }
-
     if (!found) {
-        std::cout << "No orders found for user " << customerName << ".\n";
+        std::cout << "No orders found for this table.\n";
     }
-
     awaitForInput();
 }
 
@@ -353,7 +278,7 @@ void CSession::editOrders() {
                 std::cout << "Enter order ID to remove: ";
                 int id = strictInput();
                 if (id == -1) continue;
-                if (!orderList.removeOrder(id)) {
+                if (!orderList.removeOrder(admin, id)) {
                     std::cout << "Order not found.\n";
                     awaitForInput();
                     continue; // Go back to the menu
@@ -379,4 +304,43 @@ void CSession::editOrders() {
               awaitForInput();
         }
     }
+}
+
+void CSession::changeTable() {
+    system(CLEAR_CMD);
+    std::cout << "Current table ID: " << curTableId << "\n";
+    tables.displayTables();
+
+    std::cout << "Enter new table ID: ";
+    int newTableId = strictInput();
+    if (newTableId == -1) return;
+
+    if (!tables.isTableOccupied(newTableId)) {
+        if (curTableId != 0) {
+          tables.freeTable(curTableId);
+        }  
+        curTableId = newTableId;
+        std::cout << "Table changed successfully to ID: " << curTableId << "\n";
+        tables.occupyTable(curTableId);
+        tables.saveTablesToFile("tables.txt");
+    } else {
+        std::cout << "Table ID " << newTableId << " is not available.\n";
+    }
+    awaitForInput();
+}
+
+void CSession::markAsFreeTable() {
+    // ask for an id to free, admins have no cur table id so dont display that
+    system(CLEAR_CMD);
+    tables.displayTables(admin);
+    std::cout << "\nEnter table ID to free: ";
+    int tableId = strictInput();
+    if (tableId == -1) return;
+    if (tables.isTableOccupied(tableId)) {
+        tables.freeTable(tableId);
+        tables.saveTablesToFile("tables.txt");
+    } else {
+        std::cout << "Table ID " << tableId << " is already free.\n";
+    }
+    awaitForInput();
 }

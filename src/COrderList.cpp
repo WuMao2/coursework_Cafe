@@ -14,9 +14,9 @@ void COrderList::addOrder(const COrder &order) {
     orders.push_back(order);
 }
 
-void COrderList::removeOrder(const std::string &customerName) {
+void COrderList::removeOrder(const int tableId) {
     for (auto it = orders.begin(); it != orders.end(); ++it) {
-        if (it->getCustomerName() == customerName) {
+        if (it->getTableId() == tableId) {
             orders.erase(it);
             fixOrderIds();
             return;
@@ -34,7 +34,7 @@ bool COrderList::markOrderAsFinished(int id) {
     return false;
 }
 
-bool COrderList::removeOrder(int id) {
+bool COrderList::removeOrder(CAdmin* admin, int id) {
     for (auto it = orders.begin(); it != orders.end(); ++it) {
         if (it->getId() == id) {
             orders.erase(it);
@@ -72,18 +72,18 @@ void COrderList::loadFromFile(const std::string &filename) {
 
         // Try parsing the first token as int (order ID)
         if (ss >> id) {
-            std::string customerName;
-            double totalPrice;
-            int isFinishedInt;
+          int tableId;
+          double totalPrice;
+          int isFinishedInt;
 
-            ss >> std::quoted(customerName) >> totalPrice >> isFinishedInt;
+          ss >> tableId >> totalPrice >> isFinishedInt;
 
-            COrder order(customerName);
-            order.setId(id);
-            if (isFinishedInt) order.markAsFinished();
+          COrder order(id, tableId);
+          if (isFinishedInt)
+            order.markAsFinished();
 
-            orders.push_back(order);
-            currentOrder = &orders.back();
+          orders.push_back(order);
+          currentOrder = &orders.back();
         } else if (currentOrder != nullptr) {
             // Parse item line
             std::istringstream itemStream(line);
@@ -144,7 +144,7 @@ void COrderList::saveToFile(const std::string &filename) const {
         return;
     }
     for (const auto &order : orders) {
-        file << order.getId() << " " << std::quoted(order.getCustomerName()) << " "
+        file << order.getId() << " " << order.getTableId() << " "
              << order.getTotalPrice() << " " << (order.isOrderFinished() ? "1" : "0") << "\n";
 
         for (const auto &item : order.getOrderItems()) {
