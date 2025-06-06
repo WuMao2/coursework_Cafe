@@ -19,7 +19,7 @@ void COrder::removeItem(int id) {
 }
 
 void COrder::printOrder() const {
-    std::cout << id << ". Order for " << customerName << ":\n";
+    std::cout << "Order #" << id << ":\n";
     for (const auto &item : orderItems) {
         item->display();
     }

@@ -1,8 +1,11 @@
 #pragma once
-#include "CUser.hpp"
+#include <iostream>
+#include <string>
 
-class CAdmin : public CUser {
+class CAdmin {
 private:
+    std::string username;
+    std::string password;
     long int employeeId;
 
 public:
@@ -11,5 +14,6 @@ public:
 
     // Optional getter for employee ID if needed later
     long int getEmployeeId() const;
+    std::string getUsername() const;
 };
 
