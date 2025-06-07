@@ -10,6 +10,13 @@ CSession::~CSession() {
     }
 }
 
+void CSession::endSession() {
+    running = false;
+    logout();
+    tables.freeTable(curTableId);
+    tables.saveTablesToFile("tables.txt");
+}
+
 void CSession::initialize() {
     // Load menu and orders from files
     menu.loadFromFile("menu.txt");

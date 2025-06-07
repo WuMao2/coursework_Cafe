@@ -46,5 +46,5 @@ public:
     void displayOrders() { orderList.printAllOrders(); }
 
     bool isRunning() const { return running; }
-    void endSession() { running = false;  }
+    void endSession();
 };

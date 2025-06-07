@@ -17,7 +17,7 @@ void CFoodItem::edit(const std::string& newName, double newPrice, bool isVegetar
 }
 
 void CFoodItem::display() const {
-    std::cout << std::left << std::setw(10) << "[Desert]"
+    std::cout << std::left << std::setw(10) << "[Food]"
               << "ID: "       << std::setw(4)  << id
               << "Name: "     << std::setw(20) << name
               << "Price: $"   << std::right << std::fixed << std::setprecision(2) << std::setw(6) << price << "  "
